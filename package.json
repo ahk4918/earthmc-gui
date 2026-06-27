@@ -2,18 +2,18 @@
   "name": "earthmc-full-gui",
   "version": "1.0.0",
   "description": "Full desktop GUI client application for the EarthMC server ecosystem",
-  "homepage": "https://github.com",
   "author": {
     "name": "Akhilesh G",
-    "email": "akhilesh@example.com"
+    "email": "akhilesh.gollapudi@outlook.com"
   },
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist:all": "electron-builder --linux --windows",
+    "dist:all": "electron-builder --linux --windows --mac",
     "dist:linux": "electron-builder --linux",
-    "dist:windows": "electron-builder --windows"
+    "dist:windows": "electron-builder --windows",
+    "dist:mac": "electron-builder --mac"
   },
   "dependencies": {},
   "devDependencies": {
@@ -30,6 +30,14 @@
       "renderer/**/*",
       "assets/**/*"
     ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.games",
+      "identity": "-" 
+    },
     "linux": {
       "target": [
         "dir",

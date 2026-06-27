@@ -1,24 +1,63 @@
-name: Upload Out Folder Files Individually
+name: Build and Upload Multi-Platform Installers
 
 on:
   release:
     types: [created]
 
 jobs:
-  upload-individual-files:
+  # Job 1: Compiles Linux and Windows via your native shell scripts
+  build-win-linux:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to upload assets to a release
+      contents: write
     steps:
-      - name: Checkout repository code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # OPTIONAL: If your out/ folder is generated during a build step, 
-      # uncomment and add your build command here:
-      # - name: Run Build
-      #   run: npm run build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
-      - name: Upload files individually to release
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Grant execution rights to bash scripts
+        run: chmod +x build-linux.sh build-all.sh
+
+      - name: Execute custom Linux compilation script
+        run: ./build-linux.sh
+
+      - name: Upload Linux and Compressed Binaries from out folder
         uses: softprops/action-gh-release@v2
         with:
-          files: out/*
+          files: out/* # Direct mapping of every separate file in /out
+
+  # Job 2: Compiles Mac versions using standard electron-builder
+  build-mac:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile macOS Apps
+        run: npm run dist:mac
+
+      - name: Upload macOS Binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.dmg
+            dist/*.zip
