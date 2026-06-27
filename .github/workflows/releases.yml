@@ -23,16 +23,11 @@ jobs:
         
       - name: Run Build Script
         run: ./build-linux.sh
-        # If your script doesn't forward flags, make sure --publish never 
-        # is added directly inside your build-linux.sh electron-builder command.
 
       - name: Upload Artifacts to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            out/*.deb
-            out/*.rpm
-            out/*.exe
+          files: out/* # Directly uploads everything your bash script successfully processed
 
   build-mac:
     runs-on: macos-latest
@@ -47,16 +42,13 @@ jobs:
           cache: 'npm'
           
       - run: npm ci
-      
-      - name: Make script executable
-        run: chmod +x build-mac.zsh
         
-      - name: Run Mac Build Script
-        run: zsh build-mac.zsh
+      - name: Run Mac Build
+        run: npm run dist:mac # Uses your standard package.json script directly
         
       - name: Upload Mac Artifacts to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            out/*.dmg
-            out/*.zip
+            dist/*.dmg
+            dist/*.zip
