@@ -2,6 +2,7 @@
   "name": "earthmc-full-gui",
   "version": "1.0.0",
   "description": "Full desktop GUI client application for the EarthMC server ecosystem",
+  "homepage": "https://github.com/ahk4918/earthmc-gui",
   "author": {
     "name": "Akhilesh G",
     "email": "akhilesh.gollapudi@outlook.com"
@@ -10,12 +11,14 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist:all": "electron-builder --linux --windows --mac",
+    "dist:all": "electron-builder --linux --windows",
     "dist:linux": "electron-builder --linux",
     "dist:windows": "electron-builder --windows",
     "dist:mac": "electron-builder --mac"
   },
-  "dependencies": {},
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
   "devDependencies": {
     "electron": "^42.5.0",
     "electron-builder": "^26.15.3"
@@ -24,9 +27,8 @@
     "appId": "com.earthmc.gui",
     "productName": "EarthMC GUI",
     "directories": {
-      "output": "out"
+      "output": "dist"
     },
-    "publish": null,
     "files": [
       "main.js",
       "preload.js",
@@ -34,29 +36,43 @@
       "renderer/**/*",
       "assets/**/*"
     ],
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "category": "public.app-category.games",
-      "identity": "-" 
+    "publish": {
+      "provider": "github",
+      "owner": "ahk4918",
+      "repo": "earthmc-gui"
     },
     "linux": {
       "target": [
-        "dir",
         "deb",
-        "rpm"
+        "rpm",
+        "dir"
       ],
       "category": "Game",
-      "desktopName": "earthmc-full-gui.desktop",
-      "syncDesktopName": true,
       "maintainer": "Akhilesh G <akhilesh@example.com>"
     },
     "win": {
       "target": [
         "nsis"
       ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.games"
     }
   },
   "keywords": [],
