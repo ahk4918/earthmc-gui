@@ -1,0 +1,5 @@
+build-all.sh
+build-linux.sh
+build-win.ps1
+/out
+/node_modules

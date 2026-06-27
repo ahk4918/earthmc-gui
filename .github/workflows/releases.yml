@@ -1,0 +1,24 @@
+name: Upload Out Folder Files Individually
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  upload-individual-files:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to upload assets to a release
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # OPTIONAL: If your out/ folder is generated during a build step, 
+      # uncomment and add your build command here:
+      # - name: Run Build
+      #   run: npm run build
+
+      - name: Upload files individually to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
