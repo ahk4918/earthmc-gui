@@ -1,7 +1,6 @@
 /out
 /node_modules
 dist/
-build-all.sh
 build-linux.sh
 build-mac.zsh
 build-win.ps1
