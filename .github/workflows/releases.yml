@@ -1,63 +1,62 @@
 name: Build and Upload Multi-Platform Installers
-
 on:
   release:
     types: [created]
 
 jobs:
-  # Job 1: Compiles Linux and Windows via your native shell scripts
   build-win-linux:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Grant execution rights to bash scripts
+          
+      - run: npm ci
+      
+      - name: Make scripts executable
         run: chmod +x build-linux.sh build-all.sh
-
-      - name: Execute custom Linux compilation script
+        
+      - name: Run Build Script
         run: ./build-linux.sh
+        # If your script doesn't forward flags, make sure --publish never 
+        # is added directly inside your build-linux.sh electron-builder command.
 
-      - name: Upload Linux and Compressed Binaries from out folder
+      - name: Upload Artifacts to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: out/* # Direct mapping of every separate file in /out
+          files: |
+            out/*.deb
+            out/*.rpm
+            out/*.exe
 
-  # Job 2: Compiles Mac versions using standard electron-builder
   build-mac:
     runs-on: macos-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Compile macOS Apps
-        run: npm run dist:mac
-
-      - name: Upload macOS Binaries
+          
+      - run: npm ci
+      
+      - name: Make script executable
+        run: chmod +x build-mac.zsh
+        
+      - name: Run Mac Build Script
+        run: zsh build-mac.zsh
+        
+      - name: Upload Mac Artifacts to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/*.dmg
-            dist/*.zip
+            out/*.dmg
+            out/*.zip
