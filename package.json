@@ -48,12 +48,15 @@
         "dir"
       ],
       "category": "Game",
-      "maintainer": "Akhilesh G <akhilesh@example.com>"
+      "maintainer": "Akhilesh G <akhilesh@example.com>",
+      "icon": "assets/icon.png",
+      "syncDesktopName": true
     },
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "assets/icon.ico"
     },
     "mac": {
       "target": [
@@ -73,9 +76,11 @@
         }
       ],
       "category": "public.app-category.games"
-    }
+    },
+    "icon": "assets/icon.png"
   },
   "keywords": [],
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "desktopName": "com.earthmc.gui.desktop"
 }

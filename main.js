@@ -4,15 +4,25 @@ const path = require('path');
 
 let mainWindow;
 
-app.on('ready', () => {
+function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: path.join(__dirname, 'assets/icon.png'), // Default icon (PNG)
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: false
+      enableRemoteModule: false,
+      sandbox: true,
+      contentSecurityPolicy: `
+        default-src 'self';
+        script-src 'self' 'unsafe-inline';
+        connect-src https://api.earthmc.net;
+        img-src 'self' https://mc-heads.net;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src https://fonts.gstatic.com;
+      `
     }
   });
 
@@ -22,7 +32,14 @@ app.on('ready', () => {
   mainWindow.webContents.on('did-finish-load', () => {
     autoUpdater.checkForUpdatesAndNotify();
   });
-});
+
+  // Open DevTools in development
+  if (process.env.NODE_ENV === 'development') {
+    mainWindow.webContents.openDevTools();
+  }
+}
+
+app.on('ready', createWindow);
 
 // Auto updater events
 autoUpdater.on('update-available', (info) => {
@@ -46,4 +63,15 @@ ipcMain.on('open-external', (_, url) => {
   shell.openExternal(url);
 });
 
-app.on('window-all-closed', () => app.quit());
+// Window lifecycle
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', () => {
+  if (mainWindow === null) {
+    createWindow();
+  }
+});

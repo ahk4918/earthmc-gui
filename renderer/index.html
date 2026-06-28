@@ -427,9 +427,17 @@ async function loadOnline() {
     const d = await get('online');
     _online = d.players || [];
     const tab = document.querySelector('[data-page="online"]');
-    const lbl = document.getElementById('online-tab-label'); if(lbl) lbl.textContent = `Online (${d.count})`;
+    const lbl = document.getElementById('online-tab-label');
+    if (lbl) lbl.textContent = `Online (${d.count || _online.length})`;
     renderOnline();
-  } catch(e) { setHTML('online-list', `<div class="empty">${e.message}</div>`); }
+
+    // Add tracker checks here
+    checkTracked(_online);
+    updateSessionStats(_online.length);
+  } catch(e) {
+    console.error('Failed to load online players:', e);
+    setHTML('online-list', `<div class="empty">Failed to load: ${e.message}</div>`);
+  }
 }
 function renderOnline() {
   const q = $('online-search').value.toLowerCase();
@@ -892,14 +900,6 @@ function checkTracked(currentOnlineNames) {
 function updateSessionStats(onlineCount) {
   if(onlineCount > _peakOnline) { _peakOnline = onlineCount; $('stat-peak').textContent = _peakOnline; }
   $('stat-start').textContent = _sessionStart.toLocaleTimeString();
-}
-
-// Patch loadOnline to also run tracker checks
-const _origLoadOnline = loadOnline;
-async function loadOnline() {
-  await _origLoadOnline();
-  checkTracked(_online);
-  updateSessionStats(_online.length);
 }
 
 // ── AUTO UPDATE ────────────────────────────────────────────
