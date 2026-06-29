@@ -29,11 +29,14 @@ jobs:
           cache: 'npm'
       - run: npm ci
       
-      # Force electron-builder to ONLY compile local assets and bypass the broken token check
+      # Environment overrides completely strip the hardcoded publish actions out
       - name: Compile App Installers
-        run: npm run ${{ matrix.script }} -- --config.publish=never
+        run: npm run ${{ matrix.script }}
+        env:
+          ELECTRON_BUILDER_ALLOW_EMPTY_PUBLISH_PROVIDERS: "true"
+          GH_TOKEN: "" # Bypasses credential scanning entirely
 
-      # Always saves and displays your installer files in the GitHub Actions summary UI
+      # This captures your compiled binaries and presents them on the run summary screen
       - name: Upload local build artifacts
         if: always()
         uses: actions/upload-artifact@v4
