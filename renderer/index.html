@@ -374,7 +374,26 @@ const link = (text, fn) => `<a onclick="${fn}">${text}</a>`;
 const props = items => `<div class="props">${items.filter(Boolean).map(([l,v])=>`<div class="prop"><div class="prop-l">${l}</div><div class="prop-v">${v??'—'}</div></div>`).join('')}</div>`;
 const sublist = (items, clickFn, useHead=false) => !items?.length ? '' :
   `<div class="sublist">${items.map(i=>`<div class="si" onclick="${clickFn}('${esc(i.name||i)}')">${useHead?head(i.name||i):av(i.name||i)}<span>${i.name||i}</span></div>`).join('')}</div>`;
-const esc = s => (s||'').replace(/'/g,"\\'");
+const esc = s => (s||'').replace(/'/g,"\'");
+const onlineSet = () => new Set(_online.map(p=>p.name));
+function onlineSublist(items, clickFn) {
+  if(!items?.length) return '';
+  const online = onlineSet();
+  const sorted = [...items].sort((a,b) => {
+    const ao = online.has(a.name||a), bo = online.has(b.name||b);
+    if(ao && !bo) return -1; if(bo && !ao) return 1;
+    return (a.name||a).localeCompare(b.name||b);
+  });
+  return `<div class="sublist">${sorted.map(i => {
+    const name = i.name||i;
+    const isOnline = online.has(name);
+    return `<div class="si" onclick="${clickFn}('${esc(name)}')">
+      ${cfg.heads ? `<img src="https://mc-heads.net/avatar/${encodeURIComponent(name)}/18" onerror="this.style.display='none'">` : `<div class="av">${name[0].toUpperCase()}</div>`}
+      <span style="flex:1">${name}</span>
+      ${isOnline ? '<span style="width:7px;height:7px;border-radius:50%;background:#4caf50;display:inline-block;flex-shrink:0"></span>' : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
 const ts = t => t ? new Date(t).toLocaleDateString() : '—';
 function goToTown(name) { switchTab('towns'); openTown(name); }
 function goToNation(name) { switchTab('nations'); openNation(name); }
@@ -426,18 +445,11 @@ async function loadOnline() {
   try {
     const d = await get('online');
     _online = d.players || [];
-    const tab = document.querySelector('[data-page="online"]');
-    const lbl = document.getElementById('online-tab-label');
-    if (lbl) lbl.textContent = `Online (${d.count || _online.length})`;
+    const lbl = document.getElementById('online-tab-label'); if(lbl) lbl.textContent = `Online (${d.count})`;
     renderOnline();
-
-    // Add tracker checks here
     checkTracked(_online);
     updateSessionStats(_online.length);
-  } catch(e) {
-    console.error('Failed to load online players:', e);
-    setHTML('online-list', `<div class="empty">Failed to load: ${e.message}</div>`);
-  }
+  } catch(e) { setHTML('online-list', `<div class="empty">${e.message}</div>`); }
 }
 function renderOnline() {
   const q = $('online-search').value.toLowerCase();
@@ -555,7 +567,8 @@ async function openNation(name) {
         ['Board',     n.board||null],
       ])}
       ${n.towns?.length    ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">location_city</span>Towns (${n.towns.length})</div>${sublist(n.towns, `goToTown`)}`:''}
-      ${n.residents?.length? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">people</span>Residents (${n.residents.length})</div>${sublist(n.residents,`goToPlayer`,true)}`:''}
+      ${n.residents?.length? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">people</span>Residents (${n.residents.length})</div>${onlineSublist(n.residents,`goToPlayer`)}`:''}
+      ${n.residents?.filter(r => onlineSet().has(r.name||r)).length ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">wifi</span>Online Players (${n.residents.filter(r => onlineSet().has(r.name||r)).length})</div>${onlineSublist(n.residents.filter(r => onlineSet().has(r.name||r)), `goToPlayer`)}`:''}
       ${n.allies?.length   ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">handshake</span>Allies (${n.allies.length})</div>${sublist(n.allies, `n=>openNation(n)`)}`:''}
       ${n.enemies?.length  ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">gavel</span>Enemies (${n.enemies.length})</div>${sublist(n.enemies,`n=>openNation(n)`)}`:''}
     `);
@@ -629,7 +642,8 @@ async function openTown(name) {
         ['Board',      t.board||null],
         ['Founder',    t.founder||null],
       ])}
-      ${t.residents?.length ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">people</span>Residents (${t.residents.length})</div>${sublist(t.residents,`goToPlayer`,true)}`:''}
+      ${t.residents?.length ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">people</span>Residents (${t.residents.length})</div>${onlineSublist(t.residents,`goToPlayer`)}`:''}
+      ${t.residents?.filter(r => onlineSet().has(r.name||r)).length ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">wifi</span>Online Players (${t.residents.filter(r => onlineSet().has(r.name||r)).length})</div>${onlineSublist(t.residents.filter(r => onlineSet().has(r.name||r)), `goToPlayer`)}`:''}
       ${t.trusted?.length   ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">verified_user</span>Trusted (${t.trusted.length})</div>${sublist(t.trusted,  `goToPlayer`,true)}`:''}
       ${t.outlaws?.length   ? `<div class="section-h"><span class="material-icons" style="font-size:14px;margin-right:4px">block</span>Outlaws (${t.outlaws.length})</div>${sublist(t.outlaws,  `goToPlayer`,true)}`:''}
     `);
@@ -901,6 +915,9 @@ function updateSessionStats(onlineCount) {
   if(onlineCount > _peakOnline) { _peakOnline = onlineCount; $('stat-peak').textContent = _peakOnline; }
   $('stat-start').textContent = _sessionStart.toLocaleTimeString();
 }
+
+// Patch loadOnline to also run tracker checks
+const _origLoadOnline = loadOnline;
 
 // ── AUTO UPDATE ────────────────────────────────────────────
 function checkForUpdates() {
