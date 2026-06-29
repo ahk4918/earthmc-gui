@@ -12,7 +12,7 @@ jobs:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: false  # Keeps other OS runners alive if one fails
       matrix:
         include:
           - os: ubuntu-latest
@@ -21,8 +21,6 @@ jobs:
             script: dist:win
           - os: macos-latest
             script: dist:mac
-    env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN }} # Maps your repo secret down into all platform shells
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,5 +29,20 @@ jobs:
           cache: 'npm'
       - run: npm ci
       
-      # Electron-builder reads the top-level GH_TOKEN during this step to publish directly
-      - run: npm run ${{ matrix.script }}
+      # Force electron-builder to ONLY compile local assets and bypass the broken token check
+      - name: Compile App Installers
+        run: npm run ${{ matrix.script }} -- --config.publish=never
+
+      # Always saves and displays your installer files in the GitHub Actions summary UI
+      - name: Upload local build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-installers-${{ matrix.os }}
+          path: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.exe
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: warn
