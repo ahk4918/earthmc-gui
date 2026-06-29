@@ -1,6 +1,6 @@
 {
   "name": "earthmc-full-gui",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Full desktop GUI client application for the EarthMC server ecosystem",
   "homepage": "https://github.com/ahk4918/earthmc-gui",
   "author": {
