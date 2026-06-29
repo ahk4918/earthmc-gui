@@ -11,10 +11,10 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist:all": "electron-builder --linux --windows --publish always",
-    "dist:linux": "electron-builder --linux --publish always",
-    "dist:win": "electron-builder --windows --publish always",
-    "dist:mac": "electron-builder --mac --publish always"
+    "dist:all": "electron-builder --linux --windows --publish never",
+    "dist:linux": "electron-builder --linux --publish never",
+    "dist:win": "electron-builder --windows --publish never",
+    "dist:mac": "electron-builder --mac --publish never"
   },
   "dependencies": {
     "electron-updater": "^6.3.9"
