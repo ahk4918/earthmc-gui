@@ -82,6 +82,22 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
 
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-thumb { background:#2a2a2a; }
+
+/* Map Tab */
+#map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+}
+#page-map {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 /* Tracker */
 .tracker-section { padding:12px; border-bottom:1px solid #2a2a2a; }
 .tracker-section h4 { font-size:11px; color:#666; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; display:flex; align-items:center; gap:5px; }
@@ -142,7 +158,6 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
 .btn-save:hover { background:#4752c4; }
 .btn-cancel { padding:7px 16px; background:none; color:#888; border:1px solid #2a2a2a; border-radius:4px; cursor:pointer; font-size:13px; }
 .btn-cancel:hover { color:#eee; border-color:#444; }
-
 </style>
 </head>
 <body>
@@ -160,11 +175,11 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
   <div class="tab" data-page="towns"><span class="material-icons">location_city</span>Towns</div>
   <div class="tab" data-page="players"><span class="material-icons">people</span>Players</div>
   <div class="tab" data-page="shops"><span class="material-icons">storefront</span>Shops</div>
+  <div class="tab" data-page="map"><span class="material-icons">map</span>Map</div>
   <div class="tab" data-page="tracker"><span class="material-icons">track_changes</span>Tracker<span id="tracker-badge" style="display:none;margin-left:4px;background:#f44336;color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:10px">0</span></div>
 </div>
 
 <div id="content">
-
   <!-- Dashboard -->
   <div id="page-dashboard" class="page active">
     <div class="dash">
@@ -244,6 +259,7 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
     </div>
   </div>
 
+  <!-- Shops -->
   <div id="page-shops" class="page">
     <div class="split">
       <div class="list-pane">
@@ -266,6 +282,21 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
     </div>
   </div>
 
+  <!-- Map -->
+  <div id="page-map" class="page">
+    <div style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="padding:14px; height:100%;">
+        <h2 style="margin-bottom:10px;">EarthMC Map</h2>
+        <div id="map-container" style="width:100%; height:calc(100% - 40px); border:1px solid #2a2a2a; border-radius:4px; background:#161616; position:relative;">
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#666;">
+            Loading map...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tracker -->
   <div id="page-tracker" class="page">
     <div style="flex:1;overflow-y:auto">
       <div id="update-banner" style="display:none" class="update-banner">
@@ -297,7 +328,6 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
       </div>
     </div>
   </div>
-
 </div>
 
 <div id="settings-overlay" onclick="if(event.target===this)closeSettings()">
@@ -307,11 +337,54 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
       <button onclick="closeSettings()"><span class="material-icons">close</span></button>
     </div>
     <div class="sm-body">
+      <!-- API Key -->
       <div class="setting">
         <label><span class="material-icons" style="font-size:13px">vpn_key</span>API Key</label>
         <input id="cfg-apikey" type="password" placeholder="Paste your /api key create key...">
         <div class="hint">Used for the /events SSE stream and /shop endpoint. Never share this.</div>
       </div>
+
+      <!-- Tab Visibility -->
+      <div class="setting">
+        <label><span class="material-icons" style="font-size:13px">tab</span>Tab Visibility</label>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 6px;">
+          <div class="setting-row">
+            <span>Dashboard</span>
+            <button class="toggle on" id="cfg-tab-dashboard" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <span>Online</span>
+            <button class="toggle on" id="cfg-tab-online" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <span>Nations</span>
+            <button class="toggle on" id="cfg-tab-nations" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <span>Towns</span>
+            <button class="toggle on" id="cfg-tab-towns" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <span>Players</span>
+            <button class="toggle on" id="cfg-tab-players" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <span>Shops</span>
+            <button class="toggle on" id="cfg-tab-shops" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <span>Map</span>
+            <button class="toggle on" id="cfg-tab-map" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="setting-row">
+            <span>Tracker</span>
+            <button class="toggle on" id="cfg-tab-tracker" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+        <div class="hint">Toggle which tabs are visible in the navigation bar.</div>
+      </div>
+
+      <!-- Server -->
       <div class="setting">
         <label><span class="material-icons" style="font-size:13px">dns</span>Server</label>
         <select id="cfg-server">
@@ -320,6 +393,8 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
         </select>
         <div class="hint">Which EarthMC server to query. API base stays the same.</div>
       </div>
+
+      <!-- Online Refresh Interval -->
       <div class="setting">
         <label><span class="material-icons" style="font-size:13px">refresh</span>Online Refresh Interval</label>
         <select id="cfg-refresh">
@@ -329,6 +404,8 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
           <option value="0">Disabled</option>
         </select>
       </div>
+
+      <!-- Show MC Heads -->
       <div class="setting">
         <div class="setting-row">
           <label>Show MC heads in lists</label>
@@ -336,6 +413,8 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
         </div>
         <div class="hint">Loads player faces from mc-heads.net. Disable if slow.</div>
       </div>
+
+      <!-- Auto-load -->
       <div class="setting">
         <div class="setting-row">
           <label>Auto-load Nations &amp; Towns on startup</label>
@@ -352,6 +431,7 @@ body { font-family: system-ui, sans-serif; background:#111; color:#eee; height:1
 </div>
 
 <script>
+// ------ CONFIG & UTILITIES ------
 const BASE = 'https://api.earthmc.net/v4/';
 
 async function get(ep) {
@@ -376,6 +456,8 @@ const sublist = (items, clickFn, useHead=false) => !items?.length ? '' :
   `<div class="sublist">${items.map(i=>`<div class="si" onclick="${clickFn}('${esc(i.name||i)}')">${useHead?head(i.name||i):av(i.name||i)}<span>${i.name||i}</span></div>`).join('')}</div>`;
 const esc = s => (s||'').replace(/'/g,"\'");
 const onlineSet = () => new Set(_online.map(p=>p.name));
+
+// ------ ONLINE SUBLIST ------
 function onlineSublist(items, clickFn) {
   if(!items?.length) return '';
   const online = onlineSet();
@@ -394,19 +476,16 @@ function onlineSublist(items, clickFn) {
     </div>`;
   }).join('')}</div>`;
 }
-const ts = t => t ? new Date(t).toLocaleDateString() : '—';
-function goToTown(name) { switchTab('towns'); openTown(name); }
-function goToNation(name) { switchTab('nations'); openNation(name); }
-function goToPlayer(name) { switchTab('players'); openPlayer(name,'players'); }
 
-// Tab switching
+// ------ TABS & NAVIGATION ------
 document.querySelectorAll('.tab').forEach(t =>
   t.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     $('page-'+t.dataset.page).classList.add('active');
-  }));
+  })
+);
 
 function goTo(page, fn) {
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active', x.dataset.page===page));
@@ -414,7 +493,25 @@ function goTo(page, fn) {
   fn();
 }
 
-// ── DASHBOARD ──────────────────────────────────────────────
+const ts = t => t ? new Date(t).toLocaleDateString() : '—';
+function goToTown(name) { switchTab('towns'); openTown(name); }
+function goToNation(name) { switchTab('nations'); openNation(name); }
+function goToPlayer(name) { switchTab('players'); openPlayer(name,'players'); }
+
+// ------ MAP TAB ------
+function loadMapTab() {
+  const mapContainer = document.getElementById('map-container');
+  if (!mapContainer) return;
+  mapContainer.innerHTML = '';
+
+  // Example: Embed an EarthMC map (replace with your actual map URL)
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://earthmc.net/map/';
+  iframe.style = 'width:100%; height:100%; border:none; background:transparent;';
+  mapContainer.appendChild(iframe);
+}
+
+// ------ DASHBOARD ------
 async function loadDashboard() {
   try {
     const d = await get('');
@@ -438,7 +535,7 @@ async function loadDashboard() {
   } catch(e) { $('server-info').textContent = 'Error loading server'; }
 }
 
-// ── ONLINE ─────────────────────────────────────────────────
+// ------ ONLINE ------
 let _online = [];
 async function loadOnline() {
   spin('online-list');
@@ -451,22 +548,24 @@ async function loadOnline() {
     updateSessionStats(_online.length);
   } catch(e) { setHTML('online-list', `<div class="empty">${e.message}</div>`); }
 }
+
 function renderOnline() {
   const q = $('online-search').value.toLowerCase();
   const list = _online.filter(p=>p.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
   if(!list.length) return setHTML('online-list','<div class="empty">No players</div>');
-  setHTML('online-list', list.map(p=>`
-    <div class="list-item" onclick="openPlayer('${esc(p.name)}','online')">
+  setHTML('online-list', list.map(p=>
+    `<div class="list-item" onclick="openPlayer('${esc(p.name)}','online')">
       ${head(p.name)}
       <div><div class="li-main">${p.name}</div></div>
-    </div>`).join(''));
+    </div>`
+  ).join(''));
 }
 $('online-search').addEventListener('input', renderOnline);
 
+// ------ PLAYERS ------
 async function openPlayer(name, fromPage='players') {
   const detailId = fromPage==='online' ? 'online-detail' : 'players-detail';
   spin(detailId);
-  // mark active
   document.querySelectorAll(`#${fromPage==='online'?'online':'players'}-list .list-item`).forEach(el =>
     el.classList.toggle('active', el.querySelector('.li-main')?.textContent===name));
   try {
@@ -503,7 +602,7 @@ async function openPlayer(name, fromPage='players') {
   } catch(e) { setHTML(detailId, `<div class="empty">${e.message}</div>`); }
 }
 
-// ── NATIONS ────────────────────────────────────────────────
+// ------ NATIONS ------
 let _nations = [];
 async function loadNations() {
   try {
@@ -511,6 +610,7 @@ async function loadNations() {
     renderNations();
   } catch(e) { setHTML('nations-list', `<div class="empty">${e.message}</div>`); }
 }
+
 function renderNations() {
   const q = $('nations-search').value.toLowerCase();
   const sort = $('nations-sort').value;
@@ -521,14 +621,15 @@ function renderNations() {
     return a.name.localeCompare(b.name);
   });
   if(!list.length) return setHTML('nations-list','<div class="empty">No nations</div>');
-  setHTML('nations-list', list.map(n=>`
-    <div class="list-item" onclick="openNation('${esc(n.name)}')">
+  setHTML('nations-list', list.map(n=>
+    `<div class="list-item" onclick="openNation('${esc(n.name)}')">
       ${av(n.name)}
       <div>
         <div class="li-main">${n.name}</div>
         <div class="li-sub">${n.stats?.numResidents??0} residents · ${n.stats?.numTowns??0} towns</div>
       </div>
-    </div>`).join(''));
+    </div>`
+  ).join(''));
 }
 $('nations-search').addEventListener('input', renderNations);
 $('nations-sort').addEventListener('change', renderNations);
@@ -575,7 +676,7 @@ async function openNation(name) {
   } catch(e) { setHTML('nations-detail', `<div class="empty">${e.message}</div>`); }
 }
 
-// ── TOWNS ──────────────────────────────────────────────────
+// ------ TOWNS ------
 let _towns = [];
 async function loadTowns() {
   try {
@@ -583,6 +684,7 @@ async function loadTowns() {
     renderTowns();
   } catch(e) { setHTML('towns-list', `<div class="empty">${e.message}</div>`); }
 }
+
 function renderTowns() {
   const q = $('towns-search').value.toLowerCase();
   const sort = $('towns-sort').value;
@@ -593,14 +695,15 @@ function renderTowns() {
     return a.name.localeCompare(b.name);
   });
   if(!list.length) return setHTML('towns-list','<div class="empty">No towns</div>');
-  setHTML('towns-list', list.map(t=>`
-    <div class="list-item" onclick="openTown('${esc(t.name)}')">
+  setHTML('towns-list', list.map(t=>
+    `<div class="list-item" onclick="openTown('${esc(t.name)}')">
       ${av(t.name)}
       <div>
         <div class="li-main">${t.name}</div>
         <div class="li-sub">${t.stats?.numResidents??0} residents · ${t.stats?.numTownBlocks??0} blocks</div>
       </div>
-    </div>`).join(''));
+    </div>`
+  ).join(''));
 }
 $('towns-search').addEventListener('input', renderTowns);
 $('towns-sort').addEventListener('change', renderTowns);
@@ -650,69 +753,9 @@ async function openTown(name) {
   } catch(e) { setHTML('towns-detail', `<div class="empty">${e.message}</div>`); }
 }
 
-// ── PLAYERS ────────────────────────────────────────────────
-function loadPlayers() {
-  setHTML('players-list','<div class="empty">Type a name and press Enter</div>');
-}
-$('players-search').addEventListener('keypress', async e => {
-  if(e.key !== 'Enter') return;
-  const q = e.target.value.trim(); if(!q) return;
-  spin('players-list');
-  try {
-    const d = await post('players', q);
-    if(!d?.[0]) return setHTML('players-list','<div class="empty">Not found</div>');
-    setHTML('players-list', `<div class="list-item active" onclick="openPlayer('${esc(d[0].name)}','players')">${head(d[0].name)}<div class="li-main">${d[0].name}</div></div>`);
-    openPlayer(d[0].name, 'players');
-  } catch(e) { setHTML('players-list', `<div class="empty">${e.message}</div>`); }
-});
-
-// ── GLOBAL SEARCH ──────────────────────────────────────────
-$('global-search').addEventListener('keypress', async e => {
-  if(e.key !== 'Enter') return;
-  const q = e.target.value.trim(); if(!q) return;
-  // Try player, nation, town in parallel
-  const [pd, nd, td] = await Promise.allSettled([
-    post('players', q), post('nations', q), post('towns', q)
-  ]);
-  if(pd.status==='fulfilled' && pd.value?.[0]) return goToPlayer(q);
-  if(nd.status==='fulfilled' && nd.value?.[0]) return goToNation(q);
-  if(td.status==='fulfilled' && td.value?.[0]) return goToTown(q);
-});
-
-
-// ── SETTINGS ───────────────────────────────────────────────
-let cfg = { apiKey:'', server:'nova', refresh:30, heads:true, autoload:false };
-try { Object.assign(cfg, JSON.parse(localStorage.getItem('emc-cfg')||'{}')); } catch{}
-
-function openSettings() {
-  $('cfg-apikey').value  = cfg.apiKey || '';
-  $('cfg-server').value  = cfg.server || 'nova';
-  $('cfg-refresh').value = String(cfg.refresh ?? 30);
-  $('cfg-heads').classList.toggle('on', cfg.heads !== false);
-  $('cfg-autoload').classList.toggle('on', !!cfg.autoload);
-  $('settings-overlay').classList.add('open');
-}
-function closeSettings() { $('settings-overlay').classList.remove('open'); }
-function saveSettings() {
-  cfg.apiKey   = $('cfg-apikey').value.trim();
-  cfg.server   = $('cfg-server').value;
-  cfg.refresh  = parseInt($('cfg-refresh').value);
-  cfg.heads    = $('cfg-heads').classList.contains('on');
-  cfg.autoload = $('cfg-autoload').classList.contains('on');
-  try { localStorage.setItem('emc-cfg', JSON.stringify(cfg)); } catch{}
-  closeSettings();
-  applySettings();
-}
-let _refreshTimer = null;
-function applySettings() {
-  clearInterval(_refreshTimer);
-  if(cfg.refresh > 0) _refreshTimer = setInterval(loadOnline, cfg.refresh * 1000);
-}
-
-
-// ── SHOPS ──────────────────────────────────────────────────
+// ------ SHOPS ------
 let _shops = [];
-const MC_ITEMS = { // friendly names for common items
+const MC_ITEMS = {
   'DIAMOND':'💎 Diamond','DIAMOND_SWORD':'⚔️ Diamond Sword','DIAMOND_PICKAXE':'⛏️ Diamond Pickaxe',
   'IRON_INGOT':'🔩 Iron Ingot','GOLD_INGOT':'🥇 Gold Ingot','EMERALD':'💚 Emerald',
   'TOTEM_OF_UNDYING':'🛡️ Totem','ELYTRA':'🪽 Elytra','NETHERITE_INGOT':'⬛ Netherite',
@@ -742,7 +785,6 @@ async function loadShops() {
   spin('shops-list');
   setHTML('shops-detail','<div class="spin-wrap"><div class="spinner"></div></div>');
   try {
-    // Resolve username → UUID
     let uuid = cfg.shopUUID;
     if(!uuid || cfg._shopUUIDFor !== username) {
       const pd = await post('players', username);
@@ -772,8 +814,8 @@ function filterShops() {
     return itemName(a.item).localeCompare(itemName(b.item));
   });
   if(!list.length) return setHTML('shops-list','<div class="empty">No shops match filter</div>');
-  setHTML('shops-list', list.map((s,i) => `
-    <div class="list-item" onclick="openShop(${_shops.indexOf(s)})">
+  setHTML('shops-list', list.map((s,i) =>
+    `<div class="list-item" onclick="openShop(${_shops.indexOf(s)})">
       ${itemIcon(s.item)}
       <div style="flex:1;min-width:0">
         <div class="li-main">${itemName(s.item)}</div>
@@ -782,7 +824,8 @@ function filterShops() {
           · ${s.price}g × ${s.amount} · stock: ${s.stock}
         </div>
       </div>
-    </div>`).join(''));
+    </div>`
+  ).join(''));
 }
 
 function openShop(idx) {
@@ -824,9 +867,8 @@ function loadShopsTab() {
   $('shop-key-hint').style.color = cfg.apiKey ? '#4caf50' : '#555';
 }
 
-
-// ── TRACKER ────────────────────────────────────────────────
-let _tracked = {};   // name → { online: bool|null }
+// ------ TRACKER ------
+let _tracked = {};
 let _prevOnline = new Set();
 let _sessionStart = new Date();
 let _peakOnline = 0;
@@ -916,12 +958,115 @@ function updateSessionStats(onlineCount) {
   $('stat-start').textContent = _sessionStart.toLocaleTimeString();
 }
 
-// Patch loadOnline to also run tracker checks
-const _origLoadOnline = loadOnline;
+// ------ SETTINGS ------
+let cfg = { apiKey:'', server:'nova', refresh:30, heads:true, autoload:false, tabs: {} };
+// Initialize all tabs as visible by default
+['dashboard', 'online', 'nations', 'towns', 'players', 'shops', 'map', 'tracker'].forEach(tabId => {
+  cfg.tabs[tabId] = true;
+});
+try { Object.assign(cfg, JSON.parse(localStorage.getItem('emc-cfg')||'{}')); } catch{}
 
-// ── AUTO UPDATE ────────────────────────────────────────────
+function applyTabVisibility() {
+  // Hide/show tabs based on cfg.tabs
+  Object.keys(cfg.tabs || {}).forEach(tabId => {
+    const tab = document.querySelector(`.tab[data-page="${tabId}"]`);
+    if (tab) {
+      tab.style.display = cfg.tabs[tabId] ? 'flex' : 'none';
+    }
+  });
+
+  // Ensure at least one tab is visible and active
+  const visibleTabs = document.querySelectorAll('#tabs .tab[style*="display: flex"]');
+  if (visibleTabs.length > 0) {
+    const firstVisibleTab = visibleTabs[0];
+    if (firstVisibleTab && !document.querySelector('#tabs .tab.active')) {
+      firstVisibleTab.click();
+    }
+  }
+}
+
+function openSettings() {
+  $('cfg-apikey').value  = cfg.apiKey || '';
+  $('cfg-server').value  = cfg.server || 'nova';
+  $('cfg-refresh').value = String(cfg.refresh ?? 30);
+  $('cfg-heads').classList.toggle('on', cfg.heads !== false);
+  $('cfg-autoload').classList.toggle('on', !!cfg.autoload);
+
+  // Load tab visibility toggles
+  Object.keys(cfg.tabs || {}).forEach(tabId => {
+    const toggle = $(`cfg-tab-${tabId}`);
+    if (toggle) {
+      toggle.classList.toggle('on', !!cfg.tabs[tabId]);
+    }
+  });
+
+  $('settings-overlay').classList.add('open');
+}
+
+function closeSettings() { $('settings-overlay').classList.remove('open'); }
+
+function saveSettings() {
+  cfg.apiKey   = $('cfg-apikey').value.trim();
+  cfg.server   = $('cfg-server').value;
+  cfg.refresh  = parseInt($('cfg-refresh').value);
+  cfg.heads    = $('cfg-heads').classList.contains('on');
+  cfg.autoload = $('cfg-autoload').classList.contains('on');
+
+  // Save tab visibility
+  cfg.tabs = {
+    dashboard: $('cfg-tab-dashboard').classList.contains('on'),
+    online: $('cfg-tab-online').classList.contains('on'),
+    nations: $('cfg-tab-nations').classList.contains('on'),
+    towns: $('cfg-tab-towns').classList.contains('on'),
+    players: $('cfg-tab-players').classList.contains('on'),
+    shops: $('cfg-tab-shops').classList.contains('on'),
+    map: $('cfg-tab-map').classList.contains('on'),
+    tracker: $('cfg-tab-tracker').classList.contains('on')
+  };
+
+  try { localStorage.setItem('emc-cfg', JSON.stringify(cfg)); } catch{}
+  closeSettings();
+  applySettings();
+  applyTabVisibility();
+}
+
+let _refreshTimer = null;
+function applySettings() {
+  clearInterval(_refreshTimer);
+  if(cfg.refresh > 0) _refreshTimer = setInterval(loadOnline, cfg.refresh * 1000);
+}
+
+// ------ GLOBAL SEARCH ------
+$('global-search').addEventListener('keypress', async e => {
+  if(e.key !== 'Enter') return;
+  const q = e.target.value.trim(); if(!q) return;
+  const [pd, nd, td] = await Promise.allSettled([
+    post('players', q), post('nations', q), post('towns', q)
+  ]);
+  if(pd.status==='fulfilled' && pd.value?.[0]) return goToPlayer(q);
+  if(nd.status==='fulfilled' && nd.value?.[0]) return goToNation(q);
+  if(td.status==='fulfilled' && td.value?.[0]) return goToTown(q);
+});
+
+// ------ PLAYERS ------
+function loadPlayers() {
+  setHTML('players-list','<div class="empty">Type a name and press Enter</div>');
+}
+$('players-search').addEventListener('keypress', async e => {
+  if(e.key !== 'Enter') return;
+  const q = e.target.value.trim(); if(!q) return;
+  spin('players-list');
+  try {
+    const d = await post('players', q);
+    if(!d?.[0]) return setHTML('players-list','<div class="empty">Not found</div>');
+    setHTML('players-list', `<div class="list-item active" onclick="openPlayer('${esc(d[0].name)}','players')">${head(d[0].name)}<div class="li-main">${d[0].name}</div></div>`);
+    openPlayer(d[0].name, 'players');
+  } catch(e) { setHTML('players-list', `<div class="empty">${e.message}</div>`); }
+});
+
+// ------ AUTO UPDATE ------
 function checkForUpdates() {
-  if(!window.api?.onUpdateReady) return; // not in Electron
+  if(!window.api?.onUpdateReady) return;
   window.api.onUpdateAvailable(version => {
     $('update-msg').textContent = `v${version} downloading...`;
     $('update-banner').style.display = 'flex';
@@ -939,11 +1084,7 @@ function openReleasePage() {
   window.api?.installUpdate();
 }
 
-function loadTrackerTab() {
-  renderTracked();
-}
-
-// ── INIT ───────────────────────────────────────────────────
+// ------ INIT ------
 const _loaded = {};
 function lazyLoad(page) {
   if(_loaded[page]) return;
@@ -954,15 +1095,21 @@ function lazyLoad(page) {
   if(page==='online')  loadOnline();
   if(page==='shops')   loadShopsTab();
   if(page==='tracker') loadTrackerTab();
+  if(page==='map')    loadMapTab();
 }
 
-// Patch tab clicks to lazy load
+function loadTrackerTab() {
+  renderTracked();
+}
+
 document.querySelectorAll('.tab').forEach(t =>
-  t.addEventListener('click', () => lazyLoad(t.dataset.page), true));
+  t.addEventListener('click', () => lazyLoad(t.dataset.page), true)
+);
 
 loadDashboard();
 loadOnline();
 applySettings();
+applyTabVisibility();
 checkForUpdates();
 if(cfg.autoload) { _loaded.nations=true; _loaded.towns=true; loadNations(); loadTowns(); }
 </script>
