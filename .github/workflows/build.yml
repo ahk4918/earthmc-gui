@@ -8,11 +8,11 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-all:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false # Ensures one failing OS doesn't stop the others from building
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -21,6 +21,8 @@ jobs:
             script: dist:win
           - os: macos-latest
             script: dist:mac
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }} # Maps your repo secret down into all platform shells
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,29 +30,6 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
+      
+      # Electron-builder reads the top-level GH_TOKEN during this step to publish directly
       - run: npm run ${{ matrix.script }}
-
-      # Save artifacts temporarily with unique names per platform
-      - uses: actions/upload-artifact@v4
-        with:
-          name: installers-${{ matrix.os }}
-          path: dist/
-          if-no-files-found: error
-
-  release:
-    name: Upload All to GitHub Release
-    runs-on: ubuntu-latest
-    needs: build # Waits for all three builds to finish successfully
-    steps:
-      - name: Download all installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: installers-*
-          merge-multiple: true
-          path: all-installers
-
-      - name: Publish Release Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: all-installers/*
-          token: ${{ secrets.GITHUB_TOKEN }}
