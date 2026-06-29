@@ -2,7 +2,7 @@ name: Build and Upload Multi-Platform Installers
 
 on:
   release:
-    types: [published, created]
+    types: [created]
 
 permissions:
   contents: write
@@ -12,8 +12,15 @@ jobs:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false # Ensures one failing OS doesn't stop the others from building
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            script: dist:linux
+          - os: windows-latest
+            script: dist:win
+          - os: macos-latest
+            script: dist:mac
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,40 +28,29 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
+      - run: npm run ${{ matrix.script }}
 
-      # Determine script based on OS
-      - run: npm run dist:linux
-        if: matrix.os == 'ubuntu-latest'
-      - run: npm run dist:win
-        if: matrix.os == 'windows-latest'
-      - run: npm run dist:mac
-        if: matrix.os == 'macos-latest'
-
-      # Upload platform artifacts to be collected later
+      # Save artifacts temporarily with unique names per platform
       - uses: actions/upload-artifact@v4
         with:
-          name: dist-artifacts-${{ matrix.os }}
+          name: installers-${{ matrix.os }}
           path: dist/
           if-no-files-found: error
 
   release:
-    name: Upload to GitHub Release
+    name: Upload All to GitHub Release
     runs-on: ubuntu-latest
-    needs: build
+    needs: build # Waits for all three builds to finish successfully
     steps:
-      - name: Download all build artifacts
+      - name: Download all installer artifacts
         uses: actions/download-artifact@v4
         with:
-          path: all-dist-artifacts
-          pattern: dist-artifacts-*
+          pattern: installers-*
           merge-multiple: true
-
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: all-dist-artifacts
+          path: all-installers
 
       - name: Publish Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: all-dist-artifacts/*
+          files: all-installers/*
           token: ${{ secrets.GITHUB_TOKEN }}
