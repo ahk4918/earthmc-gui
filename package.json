@@ -14,7 +14,7 @@
     "dist:all": "electron-builder --linux --windows --publish never",
     "dist:linux": "electron-builder --linux --publish never",
     "dist:win": "electron-builder --windows --publish never",
-    "dist:mac": "electron-builder --mac --publish never --x64 && electron-builder --mac --publish never --arm64"
+    "dist:mac": "electron-builder --mac --publish never"
   },
   "dependencies": {
     "electron-updater": "^6.3.9",
@@ -64,8 +64,7 @@
         {
           "target": "pkg",
           "arch": [
-            "x64",
-            "arm64"
+            "universal"
           ]
         }
       ],
