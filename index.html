@@ -11,7 +11,7 @@
     :root {
       --bg: #0a0a0a;
       --surface: #121212;
-      --surface2: #1a1a1a;
+      --surface2: #202020;
       --border: #242424;
       --accent: #5865f2;
       --accent-glow: rgba(88, 101, 242, 0.15);
@@ -213,8 +213,18 @@
       color: var(--text);
     }
 
-    .platform .material-icons {
-      font-size: 1.25rem;
+    .os-icon {
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .os-icon img {
+        width: 100%;
+        height: 100%;
+        display: block;
     }
 
     .ext {
@@ -279,11 +289,19 @@
       font-size: 0.75rem;
       cursor: pointer;
       transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
     }
 
     .os-option:hover {
       border-color: var(--accent);
       color: var(--text);
+    }
+
+    .os-option .os-icon {
+      width: 0.875rem;
+      height: 0.875rem;
     }
 
     /* --- Features Section --- */
@@ -468,13 +486,13 @@
     <section class="hero">
       <div class="hero-badge"><span class="live"></span>Open Source</div>
       <h1>Browse <span>EarthMC</span><br>from your desktop</h1>
-      <p>A fast native client for exploring nations, towns, players, and your shops — without opening a browser.</p>
+      <p>A fast native client for exploring nations, towns, players, and your shops — without opening Minecraft.</p>
     </section>
 
     <section class="dl-section" id="download">
       <div class="dl-card">
         <div class="platform" id="platform-info">
-          <span class="material-icons" id="os-icon">computer</span>
+          <span class="os-icon" id="os-icon"></span>
           <span id="os-name">Detecting your OS...</span>
           <span class="ext" id="os-ext"></span>
         </div>
@@ -484,9 +502,7 @@
         </button>
         <div class="card-note" id="os-note"></div>
       </div>
-      <div class="os-selector" id="os-selector">
-        <!-- OS options will be injected here -->
-      </div>
+      <div class="os-selector" id="os-selector"></div>
     </section>
 
     <section class="features" id="features">
@@ -554,7 +570,7 @@
       </div>
     </section>
   </main>
-
+  
   <footer>
     <p>EarthMC GUI · <a href="https://github.com/ahk4918/earthmc-gui" target="_blank">github.com/ahk4918/earthmc-gui</a> · ISC License</p>
   </footer>
@@ -563,13 +579,20 @@
     const REPO = 'ahk4918/earthmc-gui';
     let _assets = [];
 
+    // Official OS Icons as SVGs
+    const osIcons = {
+    Windows: "https://www.svgrepo.com/show/382713/windows-applications.svg",
+    Linux: "https://www.svgrepo.com/show/448236/linux.svg",
+    MacOS: "https://www.svgrepo.com/show/508761/apple.svg"
+    };
+
     // OS detection and mapping
     const osMap = {
-      'Windows': { icon: 'desktop_windows', name: 'Windows', ext: 'exe', note: 'Windows 10 / 11' },
-      'MacOS': { icon: 'laptop_mac', name: 'macOS', ext: 'pkg', note: 'macOS 12+ · Intel & Apple Silicon' },
-      'Linux': { icon: 'computer', name: 'Linux', ext: 'deb', note: 'Ubuntu · Debian · Mint' },
-      'Android': { icon: 'android', name: 'Android', ext: 'apk', note: 'Coming soon' },
-      'iOS': { icon: 'phone_iphone', name: 'iOS', ext: 'ipa', note: 'Coming soon' }
+      'Windows': { icon: osIcons.Windows, name: 'Windows', ext: 'exe', note: 'Windows 10 / 11' },
+      'MacOS': { icon: osIcons.MacOS, name: 'macOS', ext: 'pkg', note: 'macOS 12+ · Intel & Apple Silicon' },
+      'Linux': { icon: osIcons.Linux, name: 'Linux', ext: 'deb', note: 'Ubuntu · Debian · Mint' },
+      'Android': { icon: osIcons.Linux, name: 'Android', ext: 'apk', note: 'Coming soon' },
+      'iOS': { icon: osIcons.MacOS, name: 'iOS', ext: 'ipa', note: 'Coming soon' }
     };
 
     // Detect user's OS
@@ -591,7 +614,8 @@
       const config = osMap[os];
       if (!config) return;
 
-      document.getElementById('os-icon').textContent = config.icon;
+      document.getElementById("os-icon").innerHTML =
+        `<img src="${config.icon}" alt="${config.name}" draggable="false">`;
       document.getElementById('os-name').textContent = config.name;
       document.getElementById('os-ext').textContent = '.' + config.ext;
       document.getElementById('os-note').textContent = config.note;
@@ -607,7 +631,12 @@
       Object.entries(osMap).forEach(([os, config]) => {
         const btn = document.createElement('button');
         btn.className = 'os-option';
-        btn.innerHTML = `<span class="material-icons" style="font-size: 0.875rem; vertical-align: middle;">${config.icon}</span> ${config.name}`;
+        btn.innerHTML = `
+        <span class="os-icon">
+            <img src="${config.icon}" alt="${config.name}" draggable="false">
+        </span>
+        ${config.name}
+        `;
         btn.onclick = () => updateDownloadButton(os);
         selector.appendChild(btn);
       });
