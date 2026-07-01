@@ -47,6 +47,7 @@ jobs:
             dist/*.exe
             dist/*.zip
             dist/*.pkg
+            dist/*.yml
           if-no-files-found: error
 
   publish-release:
