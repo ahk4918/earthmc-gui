@@ -11,9 +11,23 @@ env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
 
 jobs:
-  build-and-publish:
-    name: Build and Publish All Platforms
-    runs-on: ubuntu-latest
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            script: dist:linux
+          - os: windows-latest
+            platform: win
+            script: dist:win
+          - os: macos-latest
+            platform: mac
+            script: dist:mac
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,7 +41,44 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and Publish All Platforms
+      - name: Build for ${{ matrix.platform }}
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: npm run dist:all
+        run: npm run ${{ matrix.script }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.platform }}
+          path: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.AppImage
+            dist/*.tar.gz
+            dist/*.exe
+            dist/*.zip
+            dist/*.pkg
+            dist/*.dmg
+            dist/*.yml
+          if-no-files-found: error
+
+  publish:
+    name: Publish to GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          merge-multiple: true
+          path: dist
+
+      - name: Display files
+        run: ls -R dist
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}
